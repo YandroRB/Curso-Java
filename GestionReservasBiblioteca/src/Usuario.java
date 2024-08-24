@@ -1,13 +1,19 @@
 public class Usuario {
     private String nombres;
     private String apellidos;
-    private String identificacion;
+    private  String identificacion;
     private String correo="desconocido";
 
     public Usuario(String nombres,String identificacion,String apellidos){
         this.nombres=nombres;
         this.apellidos=apellidos;
         this.identificacion=identificacion;
+    }
+    public Usuario(String nombres,String identificacion,String apellidos, String correo){
+        this.correo=correo;
+        this.identificacion=identificacion;
+        this.apellidos=apellidos;
+        this.nombres=nombres;
     }
     public String getNombres(){
         return this.nombres;
