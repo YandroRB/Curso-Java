@@ -17,6 +17,15 @@ public class Reserva {
         return identifReserva;
     }
 
+    public void agregarLibro(ReservarLibro libro){
+        if(this.libros.size()<this.MAXLIBROS){
+            this.libros.add(libro);
+        }
+        else {
+            System.out.println("No se puede agregar mas libros");
+        }
+    }
+
     public List<ReservarLibro> getLibros() {
         return libros;
     }
@@ -35,5 +44,15 @@ public class Reserva {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    @Override
+    public String toString() {
+        return "Reserva{" +
+                "identifReserva='" + identifReserva + '\'' +
+                ", usuario=" + usuario +
+                ", libros=" + libros +
+                ", MAXLIBROS=" + MAXLIBROS +
+                '}';
     }
 }
