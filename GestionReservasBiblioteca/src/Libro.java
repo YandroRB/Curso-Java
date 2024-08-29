@@ -10,6 +10,7 @@ public class Libro {
     private String genero="Desconocido";
     private Date fechaPublicacion ;
     private String resumen ="Desconocido";
+    private int numeroCopias=1;
 
 
     public Libro (String identifLibro, String titulo, String autor, String fechaPublicacion){
@@ -24,6 +25,14 @@ public class Libro {
             System.err.println(e.getMessage());
         }
 
+    }
+
+    public int getNumeroCopias() {
+        return numeroCopias;
+    }
+
+    public void setNumeroCopias(int numeroCopias) {
+        this.numeroCopias = numeroCopias;
     }
 
     public Libro(String identifLibro, String titulo, String genero, String autor, String resumen, String fechaPublicacion) {

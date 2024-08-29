@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.io.IOException;
 import java.util.*;
 
 public class Main {
@@ -9,6 +10,7 @@ public class Main {
         add(new Usuario("Ana Carme","653218541","Salazar Perez"));
         add(new Usuario("Laura Gabriela","214537412","Lopez Gomez"));
     }};
+
     static List<Reserva> reservas= new ArrayList<>();
     static List<Libro> libros = new ArrayList<>(){{
         add(new Libro("56231","Cien años de soledad","Gabriel García Márquez","5/6/1967"));
@@ -16,15 +18,18 @@ public class Main {
         add(new Libro("56924","El gran Gatsby","F. Scott Fitzgerald","10/4/1925"));
         add(new Libro("56842","Orgullo y prejuicio","Jane Austen","28/1/1813"));
         add(new Libro("56231","Los juegos del hambre","Suzanne Collins","14/9/2008"));
+        add(new Libro("56461","El Principito","Suzanne Collins","14/9/2008"));
     }};
 
-    Map<Integer,String> estados=Map.of(
+    static Map<Integer,String> estados=Map.of(
             1,"pendiente",
             2,"entregado",
             3,"devuelto"
     );
+    static Map<Libro,Integer> numeroCopiasEntregadas=new HashMap<>();
     public static void main(String[] args) {
         siGLibro();
+
 
 /*
         ReservarLibro nuevaReserva= new ReservarLibro("562315456",libros.get(2),estados.get(1));
@@ -73,18 +78,20 @@ public class Main {
  */
     }
     public static void siGLibro(){
-        for(Usuario usuario:usuarios){
-            System.out.println(usuario);
-        }
         System.out.println("\t\t\t\tSISTEMA DE GESTION DE RESERVAS DE LIBROS");
         System.out.println("Ingrese su identificación de usuario");
         String identificacionUsuario= JOptionPane.showInputDialog(null,"");
         if (identificacionUsuario!=null && identificacionUsuario.length() ==9){
-            boolean existe=usuarioExiste(usuarios,identificacionUsuario);
-            if(existe){
+            Usuario encontrado=usuarioExiste(usuarios,identificacionUsuario);
+            if(encontrado!=null){
                 System.out.println("\t\t\t\tLista de libros a reservar");
                 for(int i =0;i<libros.size();i++){
                     System.out.println((i+1)+") "+libros.get(i).toString());
+                }
+                try {
+                    opcionesReserva(encontrado);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
             else{
@@ -107,6 +114,95 @@ public class Main {
             siGLibro();
         }
     }
+    public static void opcionesReserva(Usuario encontrado) throws IOException {
+        System.out.println("[R]eservar [E]ditar Reserva [C]ancelar reserva");
+        boolean repetir=true;
+        while (repetir){
+            char opcion=(char)System.in.read();
+            System.in.read();
+            switch (Character.toLowerCase(opcion)){
+                case 'r':
+                    Random random = new Random();
+                    String nuevoIdentificador=String.valueOf(1000000+random.nextInt(9000000));
+                    Reserva nuevaReserva=new Reserva(nuevoIdentificador,encontrado);
+                    List<ReservarLibro> lista=crearListaReserva(nuevaReserva.getMAXLIBROS());
+                    nuevaReserva.setLibros(lista);
+                    System.out.println(nuevaReserva);
+                    reservas.add(nuevaReserva);
+                    repetir=false;
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(null,"Opcion no registrada");
+            }
+        }
+    }
+    public static List<ReservarLibro> crearListaReserva(Integer maximoReservas){
+        List<ReservarLibro> listaReserva= new ArrayList<>();
+        Scanner sc = new Scanner(System.in);
+        int opcion = -1;
+        boolean repetir=true;
+        int contador=0;
+        while (repetir) {
+            if(contador==maximoReservas) {
+                JOptionPane.showMessageDialog(null,"No puede seguir agregando mas libros");
+                return listaReserva;
+            }
+            System.out.print("Ingrese el número del libro: ");
+
+            if (sc.hasNextInt()) {
+                opcion = sc.nextInt();
+                if(opcion>0 && opcion<=libros.size()){
+                    Libro libro = libros.get(opcion-1);
+                    Integer copiaEntregadas= numeroCopiasEntregadas.get(libro);
+                    if(copiaEntregadas ==null || copiaEntregadas<libro.getNumeroCopias()){
+                        Random random= new Random();
+                        String nuevoIdentificadorReserva=String.valueOf(10000 + random.nextInt(90000));
+                        Date fechaActual=new Date();
+                        ReservarLibro nuevaReservaLibro= new ReservarLibro(nuevoIdentificadorReserva,calcularFechaDevolucion(fechaActual,14),fechaActual,libro,estados.get(2));
+                        listaReserva.add(nuevaReservaLibro);
+                        copiaEntregadas=copiaEntregadas==null?1:++copiaEntregadas;
+                        numeroCopiasEntregadas.put(libro,copiaEntregadas);
+                        contador++;
+                        System.out.println("Se ha agregado exitosamente "+libro.getTitulo());
+                    }
+                    else {
+                        int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea agregar "+libro.getTitulo()+"  como pendiente?","Aviso",JOptionPane.YES_NO_OPTION);
+                        if(respuesta == JOptionPane.YES_OPTION){
+                            Boolean libroPendiente= false;
+                            for (ReservarLibro libroReservado:listaReserva){
+                                if(libroReservado.getLibro()==libro)
+                                {
+                                    libroPendiente=true;
+                                    break;
+                                }
+
+                            }
+                            if(!libroPendiente){
+                                Random random= new Random();
+                                String nuevoIdentificadorReserva=String.valueOf(10000 + random.nextInt(90000));
+                                ReservarLibro nuevaReservaPendiente= new ReservarLibro(nuevoIdentificadorReserva,libro,estados.get(1));
+                                listaReserva.add(nuevaReservaPendiente);
+                            }
+                            else {
+                                JOptionPane.showMessageDialog(null,"El libro ya se encuentra en su lista");
+                            }
+
+                        }
+                    }
+                    int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea continuar agregando libros?","Aviso",JOptionPane.YES_NO_OPTION);
+                    if (respuesta == JOptionPane.NO_OPTION){
+                        repetir=false;
+                    }
+                }else{
+                    JOptionPane.showMessageDialog(null,"El numero que ingreso no es valido por favor ingrese el numero del libro mostrado en pantalla");
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Ingrese un número válido.");
+                sc.next();
+            }
+        }
+        return listaReserva;
+    }
     public static Usuario crearUsuario(){
         Random random = new Random();
         String nuevoIdentificadorUsuario=String.valueOf(100000000 + random.nextInt(900000000));
@@ -128,11 +224,11 @@ public class Main {
         return new Usuario(nombresUsuario,nuevoIdentificadorUsuario,apellidosUsuario,correoUsuario);
 
     }
-    public static boolean usuarioExiste(List<Usuario> usuarios,String identificadorUsuario){
+    public static Usuario usuarioExiste(List<Usuario> usuarios,String identificadorUsuario){
         for(Usuario usuario:usuarios){
-            if(usuario.getIdentificacion().equals(identificadorUsuario)) return true;
+            if(usuario.getIdentificacion().equals(identificadorUsuario)) return usuario;
         }
-        return false;
+        return null;
     }
     public  static Date calcularFechaDevolucion(Date fechaReserva,int dias){
         long diasEnMilisegundos=dias*24*60*60*1000;

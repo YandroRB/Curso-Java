@@ -7,6 +7,8 @@ public class ReservarLibro {
     private Libro libro;
     private String estado;
 
+
+
     public ReservarLibro(String identifReservaLibro, Libro libro, String estado) {
         this.identifReservaLibro = identifReservaLibro;
         this.libro = libro;

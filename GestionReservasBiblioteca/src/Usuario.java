@@ -9,6 +9,7 @@ public class Usuario {
         this.apellidos=apellidos;
         this.identificacion=identificacion;
     }
+
     public Usuario(String nombres,String identificacion,String apellidos, String correo){
         this.correo=correo;
         this.identificacion=identificacion;
