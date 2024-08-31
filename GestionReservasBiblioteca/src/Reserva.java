@@ -5,7 +5,7 @@ public class Reserva {
     private String identifReserva;
     private Usuario usuario;
     private List<ReservarLibro> libros=new ArrayList<>();
-    private Integer MAXLIBROS=5;
+    public static final Integer MAXLIBROS=5;
 
 
     public Reserva(String identifReserva, Usuario usuario) {
@@ -33,10 +33,6 @@ public class Reserva {
 
     public void setLibros(List<ReservarLibro> libros) {
         this.libros = libros;
-    }
-
-    public Integer getMAXLIBROS() {
-        return MAXLIBROS;
     }
 
     public Usuario getUsuario() {

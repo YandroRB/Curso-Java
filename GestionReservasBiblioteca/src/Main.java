@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     static List<Usuario> usuarios= new ArrayList<>(){{
@@ -27,7 +28,8 @@ public class Main {
             3,"devuelto"
     );
     static Map<Libro,Integer> numeroCopiasEntregadas=new HashMap<>();
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
+
         siGLibro();
 
 
@@ -115,22 +117,28 @@ public class Main {
         }
     }
     public static void opcionesReserva(Usuario encontrado) throws IOException {
-        System.out.println("[R]eservar [E]ditar Reserva [C]ancelar reserva");
         boolean repetir=true;
         while (repetir){
+            System.out.println("[R]eservar [E]ditar Reserva [C]ancelar reserva");
             char opcion=(char)System.in.read();
             System.in.read();
             switch (Character.toLowerCase(opcion)){
                 case 'r':
+                    List<ReservarLibro> lista=crearListaReserva(Reserva.MAXLIBROS);
+                    if(lista==null){
+                        continue;
+                    }
                     Random random = new Random();
                     String nuevoIdentificador=String.valueOf(1000000+random.nextInt(9000000));
                     Reserva nuevaReserva=new Reserva(nuevoIdentificador,encontrado);
-                    List<ReservarLibro> lista=crearListaReserva(nuevaReserva.getMAXLIBROS());
                     nuevaReserva.setLibros(lista);
                     System.out.println(nuevaReserva);
                     reservas.add(nuevaReserva);
                     repetir=false;
                     break;
+                case 'E':
+
+
                 default:
                     JOptionPane.showMessageDialog(null,"Opcion no registrada");
             }
@@ -139,7 +147,7 @@ public class Main {
     public static List<ReservarLibro> crearListaReserva(Integer maximoReservas){
         List<ReservarLibro> listaReserva= new ArrayList<>();
         Scanner sc = new Scanner(System.in);
-        int opcion = -1;
+        Integer opcion = -1;
         boolean repetir=true;
         int contador=0;
         while (repetir) {
@@ -147,10 +155,11 @@ public class Main {
                 JOptionPane.showMessageDialog(null,"No puede seguir agregando mas libros");
                 return listaReserva;
             }
-            System.out.print("Ingrese el número del libro: ");
 
-            if (sc.hasNextInt()) {
-                opcion = sc.nextInt();
+            System.out.print("Ingrese el número del libro: ");
+            String console=sc.next();
+            if (esNumero(console)) {
+                opcion = Integer.parseInt(console);
                 if(opcion>0 && opcion<=libros.size()){
                     Libro libro = libros.get(opcion-1);
                     Integer copiaEntregadas= numeroCopiasEntregadas.get(libro);
@@ -191,14 +200,90 @@ public class Main {
                     }
                     int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea continuar agregando libros?","Aviso",JOptionPane.YES_NO_OPTION);
                     if (respuesta == JOptionPane.NO_OPTION){
-                        repetir=false;
+                        siGLibro();
                     }
                 }else{
                     JOptionPane.showMessageDialog(null,"El numero que ingreso no es valido por favor ingrese el numero del libro mostrado en pantalla");
                 }
-            } else {
+            }
+            else if(console.equalsIgnoreCase("e")){
+                if(listaReserva.size()==0){
+                    JOptionPane.showMessageDialog(null,"No hay elementos que editar");
+                    continue;
+                }
+
+                List<ReservarLibro> pendientes=listaReserva.stream().filter(reserva -> estados.get(1).equalsIgnoreCase(reserva.getEstado())).collect(Collectors.toList());
+                if(pendientes.size()==0){
+                    JOptionPane.showMessageDialog(null,"No hay elementos pendientes");
+                    continue;
+                }
+                while (true){
+                    System.out.println("Escoja el libro a editar ");
+                    for(int i=0;i<pendientes.size();i++){
+                        System.out.println((i+1)+") "+pendientes.get(i).getLibro().getTitulo());
+                    }
+                    if(!sc.hasNextInt()){
+                        sc.next();
+                        continue;
+                    }
+                    int eleccion=sc.nextInt();
+                    if (eleccion<1 || eleccion>pendientes.size()){
+                        JOptionPane.showMessageDialog(null,"Escoja dentro del rango");
+                        continue;
+                    }
+                    Libro libro=pendientes.get(eleccion).getLibro();
+                    if(!(numeroCopiasEntregadas.get(libro)< libro.getNumeroCopias())){
+                        JOptionPane.showInputDialog(null,"No hay copias disponibles");
+                        continue;
+                    }
+                    ReservarLibro editarReserva=pendientes.get(eleccion);
+                    editarReserva.setEstado(estados.get(2));
+                    Date fechaAhora=new Date();
+                    editarReserva.setFechaReserva(fechaAhora);
+                    editarReserva.setFechaReserva(calcularFechaDevolucion(fechaAhora,14));
+                    numeroCopiasEntregadas.put(libro,numeroCopiasEntregadas.get(libro)+1);
+                    pendientes.remove(eleccion);
+                    System.out.println("Se ha editado correctamente ");
+                    int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea seguir editando otra reserva?","aviso",JOptionPane.YES_NO_OPTION);
+                    if(respuesta==JOptionPane.NO_OPTION){
+                        break;
+                    }
+                }
+
+            }
+            else if(console.equalsIgnoreCase("d")){
+                if(listaReserva.size() ==0 ){
+                    JOptionPane.showMessageDialog(null,"No hay elementos que eliminar, reserve su libro primero ");
+                    continue;
+                }
+                System.out.println("Escoja el libro a eliminar de la reserva: ");
+                while (true){
+                    for (int i=0;i<listaReserva.size();i++){
+                        System.out.println((i+1)+") "+listaReserva.get(i).getLibro().getTitulo());
+                    }
+                    if(!sc.hasNextInt()){
+                        sc.next();
+                        JOptionPane.showMessageDialog(null,"Ingrese un numero correcto");
+                        continue;
+                    }
+                    opcion=sc.nextInt();
+                    if(opcion<1 || opcion>listaReserva.size()){
+                        JOptionPane.showMessageDialog(null,"Ingrese el numero del libro correctamente ");
+                        continue;
+                    }
+                    ReservarLibro libroExtraido= listaReserva.remove(opcion-1);
+                    numeroCopiasEntregadas.put(libroExtraido.getLibro(),numeroCopiasEntregadas.get(libroExtraido.getLibro())-1);
+                    System.out.println("Se ha eliminado correctamente: "+ libroExtraido.getLibro().getTitulo());
+                    int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea eliminar otro libro de su lista?","aviso",JOptionPane.YES_NO_OPTION);
+                    if(respuesta == JOptionPane.NO_OPTION) break;
+                }
+            }
+            else if(console.equalsIgnoreCase("c")){
+                int respuesta =JOptionPane.showConfirmDialog(null,"¿Desea cancelar la reserva?","aviso",JOptionPane.YES_NO_OPTION);
+                if(respuesta == JOptionPane.YES_OPTION) return null;
+            }
+            else {
                 JOptionPane.showMessageDialog(null, "Ingrese un número válido.");
-                sc.next();
             }
         }
         return listaReserva;
@@ -229,6 +314,14 @@ public class Main {
             if(usuario.getIdentificacion().equals(identificadorUsuario)) return usuario;
         }
         return null;
+    }
+    public static boolean esNumero(String dato){
+        try {
+            Integer.parseInt(dato);
+            return true;
+        }catch (NumberFormatException error){
+            return false;
+        }
     }
     public  static Date calcularFechaDevolucion(Date fechaReserva,int dias){
         long diasEnMilisegundos=dias*24*60*60*1000;
