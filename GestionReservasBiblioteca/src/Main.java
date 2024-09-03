@@ -28,8 +28,8 @@ public class Main {
             3,"devuelto"
     );
     static Map<Libro,Integer> numeroCopiasEntregadas=new HashMap<>();
+    static List<ReservarLibro> pendientesLibros= new ArrayList<>();
     public static void main(String[] args)  {
-
         siGLibro();
 
 
@@ -132,17 +132,69 @@ public class Main {
                     String nuevoIdentificador=String.valueOf(1000000+random.nextInt(9000000));
                     Reserva nuevaReserva=new Reserva(nuevoIdentificador,encontrado);
                     nuevaReserva.setLibros(lista);
-                    System.out.println(nuevaReserva);
                     reservas.add(nuevaReserva);
                     repetir=false;
                     break;
-                case 'E':
-
-
+                case 'e':
+                    editarReserva(encontrado.getIdentificacion());
+                    break;
                 default:
                     JOptionPane.showMessageDialog(null,"Opcion no registrada");
             }
         }
+        siGLibro();
+    }
+    public static void editarReserva(String identificador){
+        Scanner sc = new Scanner(System.in);
+        while (true){
+            System.out.println("[A]gregar mas dias [D]evolver libro [S]olicitar libro disponible");
+            String entrada=sc.next();
+            if(entrada.equalsIgnoreCase("a")){
+                System.out.println("Libros disponibles a extender mas dias");
+                List<ReservarLibro> reservasUsuario=new ArrayList<>();
+                for(Reserva reserva:reservas){
+                    if(!reserva.getUsuario().getIdentificacion().equals(identificador)){
+                        continue;
+                    }
+                    for (ReservarLibro libro: reserva.getLibros()){
+                        if(libro.getEstado() == estados.get(2) && calcularDiasRestantes(libro.getFechaReserva(),libro.getFechaDevolucion())<=14 && estaEnEspera(libro.getLibro())){
+                            reservasUsuario.add(libro);
+                        }
+                    }
+                }
+                if(reservasUsuario.size()==0){
+                    JOptionPane.showMessageDialog(null,"No hay libros disponibles a extender mas dias ");
+                    break;
+                }
+                for(int i=0;i<reservasUsuario.size();i++){
+                    System.out.println((i+1)+") "+reservasUsuario.get(i).getLibro().getTitulo());
+                }
+                System.out.println("Escoja el libro a extender los dias");
+                String console=sc.next();
+                if(esNumero(console)){
+                    int opcion =Integer.parseInt(console);
+                    if(opcion<1 || opcion>reservasUsuario.size()){
+                        JOptionPane.showMessageDialog(null,"Opcion incorrecta");
+                        continue;
+                    }
+                    ReservarLibro reserva=reservasUsuario.get(opcion-1);
+                    Date nuevaFechaDevolucion=calcularFechaDevolucion(reserva.getFechaDevolucion(),14);
+                    System.out.println(reserva.getFechaDevolucion());
+                    reserva.setFechaDevolucion(nuevaFechaDevolucion);
+                    JOptionPane.showMessageDialog(null,"Se ha añadido mas dias para el libro: "+ reserva.getLibro().getTitulo()+ ", su nueva fecha de entrega sería "+reserva.getFechaDevolucion());
+                    int respesta = JOptionPane.showConfirmDialog(null,"¿Desea seguir aqui? ","aviso",JOptionPane.YES_NO_OPTION);
+                    if(respesta == JOptionPane.NO_OPTION) break;
+
+                }
+
+            }
+        }
+    }
+    public static  boolean estaEnEspera(Libro libro){
+        for (ReservarLibro reserva:pendientesLibros){
+            if(reserva.getLibro() == libro) return false;
+        }
+        return true;
     }
     public static List<ReservarLibro> crearListaReserva(Integer maximoReservas){
         List<ReservarLibro> listaReserva= new ArrayList<>();
@@ -167,7 +219,7 @@ public class Main {
                         Random random= new Random();
                         String nuevoIdentificadorReserva=String.valueOf(10000 + random.nextInt(90000));
                         Date fechaActual=new Date();
-                        ReservarLibro nuevaReservaLibro= new ReservarLibro(nuevoIdentificadorReserva,calcularFechaDevolucion(fechaActual,14),fechaActual,libro,estados.get(2));
+                        ReservarLibro nuevaReservaLibro= new ReservarLibro(nuevoIdentificadorReserva,fechaActual,calcularFechaDevolucion(fechaActual,14),libro,estados.get(2));
                         listaReserva.add(nuevaReservaLibro);
                         copiaEntregadas=copiaEntregadas==null?1:++copiaEntregadas;
                         numeroCopiasEntregadas.put(libro,copiaEntregadas);
@@ -191,6 +243,7 @@ public class Main {
                                 String nuevoIdentificadorReserva=String.valueOf(10000 + random.nextInt(90000));
                                 ReservarLibro nuevaReservaPendiente= new ReservarLibro(nuevoIdentificadorReserva,libro,estados.get(1));
                                 listaReserva.add(nuevaReservaPendiente);
+                                pendientesLibros.add(nuevaReservaPendiente);
                             }
                             else {
                                 JOptionPane.showMessageDialog(null,"El libro ya se encuentra en su lista");
@@ -200,7 +253,7 @@ public class Main {
                     }
                     int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea continuar agregando libros?","Aviso",JOptionPane.YES_NO_OPTION);
                     if (respuesta == JOptionPane.NO_OPTION){
-                        siGLibro();
+                        repetir=false;
                     }
                 }else{
                     JOptionPane.showMessageDialog(null,"El numero que ingreso no es valido por favor ingrese el numero del libro mostrado en pantalla");
@@ -243,6 +296,7 @@ public class Main {
                     editarReserva.setFechaReserva(calcularFechaDevolucion(fechaAhora,14));
                     numeroCopiasEntregadas.put(libro,numeroCopiasEntregadas.get(libro)+1);
                     pendientes.remove(eleccion);
+                    pendientesLibros.remove(editarReserva);
                     System.out.println("Se ha editado correctamente ");
                     int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea seguir editando otra reserva?","aviso",JOptionPane.YES_NO_OPTION);
                     if(respuesta==JOptionPane.NO_OPTION){
@@ -323,8 +377,14 @@ public class Main {
             return false;
         }
     }
+    public static int calcularDiasRestantes(Date fechaInicial,Date fechaFinal){
+        long diasEnMilisegundos=fechaFinal.getTime()-fechaInicial.getTime();
+        return (int)(diasEnMilisegundos/(1000 * 60 * 60 * 24));
+    }
     public  static Date calcularFechaDevolucion(Date fechaReserva,int dias){
-        long diasEnMilisegundos=dias*24*60*60*1000;
-        return new Date(fechaReserva.getTime()+diasEnMilisegundos);
+        Calendar fechaFutura=Calendar.getInstance();
+        fechaFutura.setTime(fechaReserva);
+        fechaFutura.add(Calendar.DAY_OF_YEAR,dias);
+        return fechaFutura.getTime();
     }
 }

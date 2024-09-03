@@ -2,9 +2,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class Libro {
-    private String identifLibro;
+    private final String identifLibro;
     private String titulo;
     private String autor;
     private String genero="Desconocido";
@@ -97,5 +98,17 @@ public class Libro {
                 "fechaPublicacion=" + format.format(fechaPublicacion) + ",\n"+
                 "resumen='" + resumen + ",\n" +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Libro libro = (Libro) obj;
+        return Objects.equals(identifLibro, libro.identifLibro) && Objects.equals(titulo, libro.titulo);
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifLibro, titulo);
     }
 }
