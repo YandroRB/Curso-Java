@@ -149,9 +149,9 @@ public class Main {
         while (true){
             System.out.println("[A]gregar mas dias [D]evolver libro [S]olicitar libro disponible");
             String entrada=sc.next();
+            List<ReservarLibro> reservasUsuario=new ArrayList<>();
             if(entrada.equalsIgnoreCase("a")){
                 System.out.println("Libros disponibles a extender mas dias");
-                List<ReservarLibro> reservasUsuario=new ArrayList<>();
                 for(Reserva reserva:reservas){
                     if(!reserva.getUsuario().getIdentificacion().equals(identificador)){
                         continue;
@@ -187,6 +187,42 @@ public class Main {
 
                 }
 
+            }
+            else if(entrada.equalsIgnoreCase("d")){
+                for(Reserva reserva:reservas){
+                    if(!reserva.getUsuario().getIdentificacion().equals(identificador)){
+                        continue;
+                    }
+                    for(ReservarLibro libro : reserva.getLibros()){
+                        if(libro.getEstado().equals(estados.get(2))){
+                            reservasUsuario.add(libro);
+                        }
+                    }
+                }
+                if(reservasUsuario.size() == 0){
+                    JOptionPane.showMessageDialog(null,"No hay libros que tenga que devolver");
+                    break;
+                }
+                System.out.println("Libros que tiene que devolver");
+                for (int i=0;i<reservasUsuario.size();i++){
+                    ReservarLibro reserva=reservasUsuario.get(i);
+                    System.out.println((i+1)+") "+reserva.getLibro().getTitulo()+ " - con "+calcularDiasRestantes(reserva.getFechaReserva(),reserva.getFechaDevolucion())+" dias restantes");
+                }
+                System.out.println("Escoja el libro a devolver");
+                String console=sc.next();
+                if(esNumero(console)) {
+                    int opcion = Integer.parseInt(console);
+                    if (opcion < 1 || opcion > reservasUsuario.size()) {
+                        JOptionPane.showMessageDialog(null, "Opcion incorrecta");
+                        continue;
+                    }
+                    ReservarLibro escogida=reservasUsuario.get(opcion-1);
+                    escogida.setEstado(estados.get(3));
+                    numeroCopiasEntregadas.put(escogida.getLibro(),numeroCopiasEntregadas.get(escogida.getLibro())-1);
+                    System.out.println("Se ha devuelto correctamente "+ escogida.getLibro().getTitulo());
+                    int respesta = JOptionPane.showConfirmDialog(null,"¿Desea seguir aqui? ","aviso",JOptionPane.YES_NO_OPTION);
+                    if(respesta == JOptionPane.NO_OPTION) break;
+                }
             }
         }
     }
