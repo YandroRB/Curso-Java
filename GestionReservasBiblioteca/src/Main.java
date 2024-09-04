@@ -138,6 +138,9 @@ public class Main {
                 case 'e':
                     editarReserva(encontrado.getIdentificacion());
                     break;
+                case 'c':
+                    siGLibro();
+                    break;
                 default:
                     JOptionPane.showMessageDialog(null,"Opcion no registrada");
             }
@@ -224,7 +227,57 @@ public class Main {
                     if(respesta == JOptionPane.NO_OPTION) break;
                 }
             }
+            else if(entrada.equalsIgnoreCase("s")){
+                for(Reserva reserva:reservas){
+                    if(!reserva.getUsuario().getIdentificacion().equals(identificador)){
+                        continue;
+                    }
+                    for(ReservarLibro libro : reserva.getLibros()){
+                        if(primeroEnEspera(libro.getLibro())==libro && numeroCopiasEntregadas.get(libro.getLibro())<libro.getLibro().getNumeroCopias()  ){
+                            reservasUsuario.add(libro);
+                        }
+                    }
+                }
+                if(reservasUsuario.size() == 0){
+                    JOptionPane.showMessageDialog(null,"No hay libros disponibles");
+                    break;
+                }
+                System.out.println("Libros en espera que estan disponibles");
+                for (int i=0;i<reservasUsuario.size();i++){
+                    ReservarLibro reserva=reservasUsuario.get(i);
+                    System.out.println((i+1)+") "+reserva.getLibro().getTitulo());
+                }
+                System.out.println("Escoja el libro a tomar prestado");
+                String console=sc.next();
+                if(esNumero(console)) {
+                    int opcion = Integer.parseInt(console);
+                    if (opcion < 1 || opcion > reservasUsuario.size()) {
+                        JOptionPane.showMessageDialog(null, "Opcion incorrecta");
+                        continue;
+                    }
+                    ReservarLibro reserva=reservasUsuario.get(opcion-1);
+                    Date fechaAhora=new Date();
+                    reserva.setFechaReserva(fechaAhora);
+                    reserva.setFechaDevolucion(calcularFechaDevolucion(fechaAhora,14));
+                    reserva.setEstado(estados.get(2));
+                    pendientesLibros.remove(reserva);
+                    numeroCopiasEntregadas.put(reserva.getLibro(),numeroCopiasEntregadas.get(reserva.getLibro())+1);
+                    System.out.println("Usted ha prestado el libro "+ reserva.getLibro().getTitulo() +", su fecha de entrega es: "+reserva.getFechaDevolucion());
+                    int respesta = JOptionPane.showConfirmDialog(null,"¿Desea seguir aqui? ","aviso",JOptionPane.YES_NO_OPTION);
+                    if(respesta == JOptionPane.NO_OPTION) break;
+
+                }
+
+            }
         }
+    }
+    public static ReservarLibro primeroEnEspera(Libro libro){
+        for (ReservarLibro reserva:pendientesLibros){
+            if(reserva.getLibro() == libro){
+                return reserva;
+            }
+        }
+        return  null;
     }
     public static  boolean estaEnEspera(Libro libro){
         for (ReservarLibro reserva:pendientesLibros){
