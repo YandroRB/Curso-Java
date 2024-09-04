@@ -31,53 +31,6 @@ public class Main {
     static List<ReservarLibro> pendientesLibros= new ArrayList<>();
     public static void main(String[] args)  {
         siGLibro();
-
-
-/*
-        ReservarLibro nuevaReserva= new ReservarLibro("562315456",libros.get(2),estados.get(1));
-        Date fechaReserva= new Date();
-        ReservarLibro nuevaReserva2= new ReservarLibro("569615456",fechaReserva,calcularFechaDevolucion(fechaReserva,14),libros.get(2),estados.get(2));
-
-        ReservarLibro nuevaReserva3 = new ReservarLibro("569615356",fechaReserva,calcularFechaDevolucion(fechaReserva,14),libros.get(1),estados.get(2));
-
-        Calendar nuevoCalendario= new GregorianCalendar(2024,7,28,13,15,40);
-        Date nuevaFechaReserva=nuevoCalendario.getTime();
-
-        ReservarLibro nuevaReserva4 = new ReservarLibro("568635456",nuevaFechaReserva,calcularFechaDevolucion(nuevaFechaReserva,14),libros.get(3),estados.get(2));
-
-        Reserva nuevaReservaUsuario= new Reserva("321541",usuarios.get(3));
-        nuevaReservaUsuario.agregarLibro(nuevaReserva);
-        nuevaReservaUsuario.agregarLibro(nuevaReserva3);
-        nuevaReservaUsuario.agregarLibro(nuevaReserva4);
-        nuevaReservaUsuario.agregarLibro(nuevaReserva4);
-
-        Reserva nuevaReservaUsuario2= new Reserva("321532",usuarios.get(2));
-        nuevaReservaUsuario2.agregarLibro(nuevaReserva);
-        nuevaReservaUsuario2.agregarLibro(nuevaReserva);
-        nuevaReservaUsuario2.agregarLibro(nuevaReserva);
-        nuevaReservaUsuario2.agregarLibro(nuevaReserva);
-
-        reservas.add(nuevaReservaUsuario);
-        reservas.add(nuevaReservaUsuario2);
-
-        for(Reserva reserva:reservas){
-            System.out.println(reserva);
-            System.out.println("\n\n");
-        }
-
-
-
-        //System.out.println(nuevaReservaUsuario);
-
-
-        for(Usuario usuario:usuarios){
-            System.out.println(usuario);
-        }
-        for (Libro libro:libros){
-            System.out.println(libro);
-        }
-
- */
     }
     public static void siGLibro(){
         System.out.println("\t\t\t\tSISTEMA DE GESTION DE RESERVAS DE LIBROS");
@@ -160,12 +113,12 @@ public class Main {
                         continue;
                     }
                     for (ReservarLibro libro: reserva.getLibros()){
-                        if(libro.getEstado() == estados.get(2) && calcularDiasRestantes(libro.getFechaReserva(),libro.getFechaDevolucion())<=14 && estaEnEspera(libro.getLibro())){
+                        if(libro.getEstado().equals(estados.get(2))  && calcularDiasRestantes(libro.getFechaReserva(),libro.getFechaDevolucion())<=14 && estaEnEspera(libro.getLibro())){
                             reservasUsuario.add(libro);
                         }
                     }
                 }
-                if(reservasUsuario.size()==0){
+                if(reservasUsuario.isEmpty()){
                     JOptionPane.showMessageDialog(null,"No hay libros disponibles a extender mas dias ");
                     break;
                 }
@@ -202,7 +155,7 @@ public class Main {
                         }
                     }
                 }
-                if(reservasUsuario.size() == 0){
+                if(reservasUsuario.isEmpty()){
                     JOptionPane.showMessageDialog(null,"No hay libros que tenga que devolver");
                     break;
                 }
@@ -238,7 +191,7 @@ public class Main {
                         }
                     }
                 }
-                if(reservasUsuario.size() == 0){
+                if(reservasUsuario.isEmpty()){
                     JOptionPane.showMessageDialog(null,"No hay libros disponibles");
                     break;
                 }
@@ -288,7 +241,7 @@ public class Main {
     public static List<ReservarLibro> crearListaReserva(Integer maximoReservas){
         List<ReservarLibro> listaReserva= new ArrayList<>();
         Scanner sc = new Scanner(System.in);
-        Integer opcion = -1;
+        int opcion ;
         boolean repetir=true;
         int contador=0;
         while (repetir) {
@@ -318,7 +271,7 @@ public class Main {
                     else {
                         int respuesta=JOptionPane.showConfirmDialog(null,"¿Desea agregar "+libro.getTitulo()+"  como pendiente?","Aviso",JOptionPane.YES_NO_OPTION);
                         if(respuesta == JOptionPane.YES_OPTION){
-                            Boolean libroPendiente= false;
+                            boolean libroPendiente= false;
                             for (ReservarLibro libroReservado:listaReserva){
                                 if(libroReservado.getLibro()==libro)
                                 {
@@ -349,13 +302,13 @@ public class Main {
                 }
             }
             else if(console.equalsIgnoreCase("e")){
-                if(listaReserva.size()==0){
+                if(listaReserva.isEmpty()){
                     JOptionPane.showMessageDialog(null,"No hay elementos que editar");
                     continue;
                 }
 
                 List<ReservarLibro> pendientes=listaReserva.stream().filter(reserva -> estados.get(1).equalsIgnoreCase(reserva.getEstado())).collect(Collectors.toList());
-                if(pendientes.size()==0){
+                if(pendientes.isEmpty()){
                     JOptionPane.showMessageDialog(null,"No hay elementos pendientes");
                     continue;
                 }
@@ -395,7 +348,7 @@ public class Main {
 
             }
             else if(console.equalsIgnoreCase("d")){
-                if(listaReserva.size() ==0 ){
+                if(listaReserva.isEmpty() ){
                     JOptionPane.showMessageDialog(null,"No hay elementos que eliminar, reserve su libro primero ");
                     continue;
                 }
